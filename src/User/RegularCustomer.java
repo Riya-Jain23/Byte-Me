@@ -1,0 +1,70 @@
+package User;
+
+import Core.Cart;
+import Core.FoodItem;
+import Core.Order;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
+public class RegularCustomer extends User {
+    public Cart cart;
+    private List<Order> orderHistory;
+    private Admin admin;
+
+    public RegularCustomer(String name, String userId, Admin admin) {
+        super(name, userId);
+        this.admin = admin;
+        this.cart = new Cart();
+        this.orderHistory = new ArrayList<>();
+    }
+
+    public void addToCart(FoodItem item, int quantity) {
+        cart.addItem(item, quantity);
+    }
+
+    public void removeFromCart(FoodItem item) {
+        cart.removeItem(item);
+    }
+
+    public void placeOrder() {
+        double total = cart.calculateTotal();
+        Order order = new Order(this, false, "");
+        // Add items to the order
+        for (FoodItem item : cart.getItems().keySet()) {
+            order.addItem(item, cart.getItems().get(item));
+        }
+        orderHistory.add(order);
+        admin.addOrder(order);
+        cart.clearCart(); // Clear cart after placing an order
+        System.out.println("Order placed successfully. Total: " + total);
+    }
+
+    public List<Order> getOrderHistory() {
+        return orderHistory;
+    }
+
+    public void viewOrderStatus() {
+        if (orderHistory.isEmpty()) {
+            System.out.println("No orders found.");
+            return;
+        }
+        for (Order order : orderHistory) {
+            System.out.println("Order ID: " + order.getOrderId() + ", Status: " + order.getStatus());
+        }
+    }
+
+    public void cancelOrder(int orderId) {
+        for (Order order : orderHistory) {
+            if (order.getOrderId() == orderId && order.canBeCancelled()) {
+                order.setStatus("Cancelled");
+                System.out.println("Order ID " + orderId + " cancelled successfully.");
+                return;
+            }
+        }
+        System.out.println("Order cannot be cancelled.");
+    }
+}
+
+
